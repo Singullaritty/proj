@@ -4,7 +4,7 @@ import json
 headers = {
     "Accept": "application/json",
     "Content-Type": "application/json",
-    "Authorization": "Bearer <api_token>"
+    "Authorization": "Bearer eyJrIjoialhtbTJ6SXlyOXdxNXBxRTNMY1VoWmQ4dEJXNEpxQzIiLCJuIjoic25hcF9jcmVhdGUiLCJpZCI6MX0="
 }
 
 # r = requests.get("http://localhost:3000/api/dashboards/uid/oyg53Ql7z", headers=headers)
