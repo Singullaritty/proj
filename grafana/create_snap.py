@@ -5,11 +5,15 @@ import time
 # Timestamp for snapshot
 timestr = time.strftime("%H:%M:%S_%Y/%m/%d")
 
+# Read API token from file
+with open('/home/cloud_user/api_token', 'r') as api_file:
+    api_token = api_file.read().strip('\n')
+
 # Auth for HTTP API
 headers = {
     "Accept": "application/json",
     "Content-Type": "application/json",
-    "Authorization": "Bearer eyJrIjoialhtbTJ6SXlyOXdxNXBxRTNMY1VoWmQ4dEJXNEpxQzIiLCJuIjoic25hcF9jcmVhdGUiLCJpZCI6MX0="
+    "Authorization": f"Bearer {api_token}"
 }
 
 # Search for dashboard UID
