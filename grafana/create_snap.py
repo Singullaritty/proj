@@ -44,16 +44,8 @@ payload = json.dumps(r_result, indent=4, sort_keys=True)
 # Creating snapshot
 url = "http://localhost:3000/api/snapshots"
 
-<<<<<<< HEAD
-p = requests.post(url, headers=headers, json=snapshot)
-
-print(p)
-print(p.status_code)
-print(p.text)
-=======
 p = requests.post(url, headers=headers, data=payload)
 parsed = json.loads(p.text)
 # print(p)
 # print(p.status_code)
 print(json.dumps(parsed, indent=4, sort_keys=True))
->>>>>>> a8f2f38 (Updated version: Added search for dashboard UID and Getting Dashboard metadata)
