@@ -32,6 +32,7 @@ def create_snap():
     search_query = requests.get(search_url, headers=headers)
     load_query = json.loads(search_query.text)
     # Retrieving dashboard uid value
+    dashboard_name = str([item["title"] for item in load_query]).strip('[|]|\'')
     dashboard_uid = str([item["uid"] for item in load_query]).strip('[|]|\'')
 
     # Getting dashboard metadata by UID
@@ -43,14 +44,10 @@ def create_snap():
     payload = json.dumps(get_result, indent=4, sort_keys=True)
 
     # Creating snapshot
-    url = "http://localhost:3000/api/snapshots"
-
-    post_data = requests.post(url, headers=headers, data=payload)
+    snapshot_url = "http://localhost:3000/api/snapshots"
+    post_data = requests.post(snapshot_url, headers=headers, data=payload)
     post_parsed = json.loads(post_data.text)
-    # print(p)
-    # print(p.status_code)
     post_snap_url = post_parsed["url"]
-
-    logging.info(f"Snapshot has been created for dashboard UID: {dashboard_uid} Snapshot URL: {post_snap_url}")
+    logging.info(f"Snapshot for dashboard: \"{dashboard_name}\" has been created. It can be accessed via URL: {post_snap_url}")
 
 create_snap()
