@@ -32,8 +32,7 @@ def create_snap():
     search_query = requests.get(search_url, headers=headers)
     load_query = json.loads(search_query.text)
     # Retrieving dashboard uid value
-    for keys in load_query:
-        dashboard_uid = keys["uid"]
+    dashboard_uid = str([item["uid"] for item in load_query]).strip('[|]|\'')
 
     # Getting dashboard metadata by UID
     metadata_url = f"http://localhost:3000/api/dashboards/uid/{dashboard_uid}"
