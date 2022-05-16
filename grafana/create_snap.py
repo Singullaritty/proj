@@ -14,7 +14,7 @@ def create_snap():
     snap_logger.setLevel(logging.INFO)
     
     # Timestamp for snapshot
-    timestr = time.strftime("%H:%M:%S_%Y/%m/%d")
+    timestr = time.strftime("%Y-%m-%d_%H:%M:%S")
 
     # Read API token from file
     with open('/home/cloud_user/api_token', 'r') as api_file:
