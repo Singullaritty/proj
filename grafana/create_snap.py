@@ -5,6 +5,7 @@ import logging
 
 def create_snap():
 
+    # Logger init
     formatter = logging.Formatter(f"%(asctime)s %(levelname)s %(message)s ")
     handler = logging.StreamHandler()
     handler.setLevel(logging.INFO)
