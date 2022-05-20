@@ -1,25 +1,21 @@
 import requests
 import json
 import datetime
+import sys
 from datetime import timedelta
-import time
-import logging
+from loguru import logger
+
 
 def create_snap():
 
-    # Logger init
-    formatter = logging.Formatter(f"%(asctime)s %(levelname)s %(message)s ")
-    handler = logging.StreamHandler()
-    handler.setLevel(logging.INFO)
-    handler.setFormatter(formatter)
-    snap_logger = logging.getLogger()
-    snap_logger.addHandler(handler)
-    snap_logger.setLevel(logging.INFO)
+    # # Logger init
+    logger.remove(0)
+    frmt =  "<green>{time}</green> | <blue>{level}</blue> | {message}"
+    logger.add(sys.stderr, level="INFO", format=frmt)
     
     # Timestamp for snapshot
-    timestr = time.strftime("%Y-%m-%d_%H:%M:%S")
     today = datetime.datetime.now()
-    date_time = today.strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+    snap_time = today.strftime("%H:%M:%S_%Y-%m-%d")
     one_hour_minus = today - timedelta(hours=1)
 
     # Read API token from file
@@ -32,17 +28,6 @@ def create_snap():
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_token}"
     }
-    
-    # # Data source query
-    # ds_db_query = "SELECT last(\"uptime_format\") AS \"value\" FROM \"system\" WHERE \"host\" =~ /learn-python$/ AND time >= now() - 1h and time <= now() GROUP BY time(30s)&epoch=ms"
-    # ds_url = f"http://0ddf75494e1c.mylabserver.com:3000/api/datasources/proxy/1/query?db=test&q={ds_db_query}"
-    # ds_query = requests.get(ds_url, headers=headers)
-    # ds_load = json.loads(ds_query.text)
-    # ds_parse = json.dumps(ds_load, indent=3, sort_keys=True)
-    # # print(ds_query.status_code)
-    # # print(ds_parse)
-
-
 
     # Search query for dashboard UID
     search_url = "http://localhost:3000/api/search?query=Telegraf%test%XD"
@@ -64,7 +49,7 @@ def create_snap():
                 "to": "now"
                 }
     }
-    snap_name = {"name": "Testing-snapshot-creation--" + timestr}
+    snap_name = {"name": "Testing-snapshot-creation--" + snap_time}
     get_result['dashboard']['time'] = time_value
     get_result.update(snap_name)
     payload = json.dumps(get_result, indent=3, sort_keys=True)
@@ -79,6 +64,6 @@ def create_snap():
     post_data = requests.post(snapshot_url, headers=headers, data=payload)
     post_parsed = json.loads(post_data.text)
     post_snap_url = post_parsed["url"]
-    logging.info(f"Snapshot for dashboard: \"{dashboard_name}\" has been created. It can be accessed via URL: {post_snap_url}")
+    logger.info(f"Snapshot for dashboard: \"{dashboard_name}\" has been created. It can be accessed via URL: {post_snap_url}", format=frmt, colorize=True)
 
 create_snap()
