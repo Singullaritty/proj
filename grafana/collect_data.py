@@ -2,60 +2,55 @@ import requests
 import json
 import datetime
 import sys
-import ijson
+import ast
 from datetime import timedelta
 from loguru import logger
 
+# # Logger init
+logger.remove(0)
+frmt =  "<green>{time}</green> | <blue>{level}</blue> | {message}"
+logger.add(sys.stderr, level="INFO", format=frmt)
 
-def create_snap():
+# Read API token from file
+with open('/home/cloud_user/api_token', 'r') as api_file:
+    api_token = api_file.read().strip('\n')
 
-    null = None
+# Auth for HTTP API
+headers = {
+    "Accept": "application/json",
+    "Content-Type": "application/json",
+    "Authorization": f"Bearer {api_token}"
+}
 
-    # # Logger init
-    logger.remove(0)
-    frmt =  "<green>{time}</green> | <blue>{level}</blue> | {message}"
-    logger.add(sys.stderr, level="INFO", format=frmt)
-    
-    # Timestamp for snapshot
-    today = datetime.datetime.now()
-    snap_time = today.strftime("%H:%M:%S_%Y-%m-%d")
-    one_hour_minus = today - timedelta(hours=1)
+def parse_json(object, indent_value=None):
+    return json.dumps(object, indent=indent_value, sort_keys=True)
 
-    # Read API token from file
-    with open('/home/cloud_user/api_token', 'r') as api_file:
-        api_token = api_file.read().strip('\n')
-
-    # Auth for HTTP API
-    headers = {
-        "Accept": "application/json",
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_token}"
-    }
-
+def search_dashboard(header):
     # Search query for dashboard UID
-    search_url = "http://localhost:3000/api/search?query=Telegraf%test%XD"
-    search_query = requests.get(search_url, headers=headers)
+    search_url = f"http://localhost:3000/api/search?query=Telegraf%test%XD"
+    search_query = requests.get(search_url, headers=header)
     load_query = json.loads(search_query.text)
     # Retrieving dashboard uid value
-    dashboard_name = str([item["title"] for item in load_query]).strip('[|]|\'')
     dashboard_uid = str([item["uid"] for item in load_query]).strip('[|]|\'')
+    return dashboard_uid
 
+def get_dashboard_metadata(dashboard_uid):
     # Getting dashboard metadata by UID
     metadata_url = f"http://localhost:3000/api/dashboards/uid/{dashboard_uid}"
     get_metadata = requests.get(metadata_url, headers=headers)
     get_result = json.loads(get_metadata.text)
-    payload = json.dumps(get_result, indent=3, sort_keys=True)
+    #get_meta_parsed = json.dumps(get_result, indent=3, sort_keys=True)
+    return get_result
 
-    # Write to a file
-    with open('sample.json', 'w') as outfile:
-        outfile.write(payload)
+def panel_templ(get_result):
+    all_panels = [item for item in get_result['dashboard']['panels'] if item["title"] != None]
+    all_panels = parse_json(all_panels, 2)
+    return all_panels
 
-def parse_json(json_filename):
-    with open(json_filename, 'rb') as input_file:
-        # load json
-        parser = ijson.parse(input_file)
-        for prefix, event, value in parser:
-            print(f'prefix={prefix}, event={event}, value={value}')
+def main():
+    uid = search_dashboard(headers)
+    metadata = get_dashboard_metadata(uid)
+    print(panel_templ(metadata))
 
-create_snap()
-parse_json('sample.json')
+if __name__ == "__main__":
+    main()
