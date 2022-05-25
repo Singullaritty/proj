@@ -16,7 +16,7 @@ with open('/home/cloud_user/api_token', 'r') as api_file:
     api_token = api_file.read().strip('\n')
 
 # Auth for HTTP API
-headers = {
+logon = {
     "Accept": "application/json",
     "Content-Type": "application/json",
     "Authorization": f"Bearer {api_token}"
@@ -25,31 +25,30 @@ headers = {
 def parse_json(object, indent_value=None):
     return json.dumps(object, indent=indent_value, sort_keys=True)
 
+def load_json(object):
+    return json.loads(object.text)
+
 def search_dashboard(header):
     # Search query for dashboard UID
     search_url = f"http://localhost:3000/api/search?query=Telegraf%test%XD"
-    search_query = requests.get(search_url, headers=header)
-    load_query = json.loads(search_query.text)
+    get_dashboard = load_json(requests.get(search_url, headers=header))
     # Retrieving dashboard uid value
-    dashboard_uid = str([item["uid"] for item in load_query]).strip('[|]|\'')
+    dashboard_uid = str([item["uid"] for item in get_dashboard]).strip('[|]|\'')
     return dashboard_uid
 
-def get_dashboard_metadata(dashboard_uid):
+def get_dashboard_metadata(dashboard_uid, header):
     # Getting dashboard metadata by UID
     metadata_url = f"http://localhost:3000/api/dashboards/uid/{dashboard_uid}"
-    get_metadata = requests.get(metadata_url, headers=headers)
-    get_result = json.loads(get_metadata.text)
-    #get_meta_parsed = json.dumps(get_result, indent=3, sort_keys=True)
-    return get_result
+    get_metadata = load_json(requests.get(metadata_url, headers=header))
+    return dict(get_metadata)
 
-def panel_templ(get_result):
-    all_panels = [item for item in get_result['dashboard']['panels'] if item["title"] != None]
-    all_panels = parse_json(all_panels, 2)
-    return all_panels
+def panel_templ(get_metadata):
+    all_panels = {k: v for k, v in get_metadata['dashboard'].items() if k.startswith('panels')}
+    return parse_json(all_panels, 2)
 
 def main():
-    uid = search_dashboard(headers)
-    metadata = get_dashboard_metadata(uid)
+    uid = search_dashboard(logon)
+    metadata = get_dashboard_metadata(uid, logon)
     print(panel_templ(metadata))
 
 if __name__ == "__main__":
