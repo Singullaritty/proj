@@ -7,6 +7,8 @@ import io
 from datetime import timedelta
 from loguru import logger
 
+
+database_name = 'test'
 # # Logger init
 logger.remove(0)
 frmt =  "<green>{time}</green> | <blue>{level}</blue> | {message}"
@@ -41,7 +43,7 @@ def get_dashboard_metadata(dashboard_uid, header):
     # Getting dashboard metadata by UID
     metadata_url = f"http://localhost:3000/api/dashboards/uid/{dashboard_uid}"
     get_metadata = load_json(requests.get(metadata_url, headers=header))
-    with open('file_to_parse.json', 'r+') as json_f:
+    with open('file_to_parse.json', 'w+') as json_f:
         file_dumps = dumps_json(get_metadata, 2)
         json_f.write(file_dumps)
     return dict(get_metadata), json_f.name
@@ -62,25 +64,27 @@ def extract_ds_queries(json_filename):
         queries = ijson.items(input_file, 'dashboard.panels.item.targets.item.query')
         for query in queries:
             q_list.append(f'{query}')
+        q_list = [w.replace('$timeFilter', 'time >= now() - 1h and time <= now()') for w in q_list]
+        q_list = [w.replace('$interval', '30s') for w in q_list]
+        q_list = [w.replace('$server', 'learn-python') for w in q_list]
+        q_list = [w.replace(' ', '%20') for w in q_list]
+        q_list = [w.replace('"', '%22') for w in q_list]
         return q_list
 
-
-# def get_panels(get_metadata):
-#     panels_dict = {k:v for k,v in get_metadata['dashboard'].items() if k == 'panels'}
-#     return parse_json(panels_dict).replace('targets', 'snapshotData')
-        
-# def get_query(get_panels):
-#     dict_q = json.loads(get_panels)
-#     for key, value in dict_q.items():
-#         for k, v in value.items():
-#             print(v)
-#     return type(dict_q)
+def get_ds_values(header, queries_list):
+    for query in queries_list:
+        query_url = f"http://localhost:3000/api/datasources/proxy/1/query?db={database_name}&q={query}"
+        query_result = load_json(requests.get(query_url, headers=header))
+        print(query_result)
+    #return query_result
 
 def main():
     uid = search_dashboard(logon)
     metadata = get_dashboard_metadata(uid, logon)[0]
     file = get_dashboard_metadata(uid, logon)[1]
-    print(extract_ds_queries(file))
+    queries_list = extract_ds_queries(file)
+    ds_values = get_ds_values(logon, queries_list)
+    print(ds_values)
 
 if __name__ == "__main__":
     main()
