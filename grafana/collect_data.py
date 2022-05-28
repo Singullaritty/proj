@@ -7,12 +7,13 @@ import io
 from datetime import timedelta
 from loguru import logger
 
-
+# influxdb instance name
 database_name = 'test'
+
 # # Logger init
 logger.remove(0)
-frmt =  "<green>{time}</green> | <blue>{level}</blue> | {message}"
-logger.add(sys.stderr, level="INFO", format=frmt)
+frmt_info =  "<green>{time}</green> | <blue>{level}</blue> | {message}"
+logger.add(sys.stderr, level="INFO", format=frmt_info)
 logger.add(sys.stderr, level="DEBUG")
 
 # Read API token from file
@@ -26,12 +27,15 @@ logon = {
     "Authorization": f"Bearer {api_token}"
 }
 
+# return parsed json object
 def dumps_json(object, indent_value=None):
     return json.dumps(object, indent=indent_value, sort_keys=True)
 
+# loads object as json 
 def load_json(object):
     return json.loads(object.text)
 
+# search for a dashboard and retrieve metadata from it
 def get_dashboard(header):
     def search_dashboard():
         logger.debug("load_json")
@@ -54,6 +58,7 @@ def get_dashboard(header):
     
     return get_dashboard_metadata(), search_dashboard()
 
+# parse json object and return list of object
 def parse_json(json_filename):
     logger.debug("parse_json")
     with open(json_filename, 'rb') as input_file:
@@ -65,6 +70,7 @@ def parse_json(json_filename):
         nl_data = '\n'.join(data)
         return str(nl_data).strip('[|]').replace('\'','')
 
+# extracting data for snapshot template
 def extract_data(json_filename, header):
     logger.debug("extract_ds_queries")
     # extract list of the queries from dashboard metadata
@@ -87,7 +93,8 @@ def extract_data(json_filename, header):
     def extract_snap_templ_data():
         logger.debug("extract_snap_templ_data")
         pass
-
+    
+    # execute queries and return results as list
     def get_ds_values():
         logger.debug("get_ds_values")
         response_q = []
@@ -109,9 +116,9 @@ def extract_data(json_filename, header):
 def main():
     #print(get_dashboard(logon)[0][0])
     uid = get_dashboard(logon)[1]
-    metadata, file = get_dashboard(logon)[0][0], get_dashboard(logon)[0][1]
-    queries_list, ds_values = extract_data(file, logon)[0], extract_data(file, logon)[1]
-    print(ds_values)
+    metadata, file_to_parse = get_dashboard(logon)[0][0], get_dashboard(logon)[0][1]
+    queries_list, ds_values = extract_data(file_to_parse, logon)[0], extract_data(file_to_parse, logon)[1]
+    print(ds_values[1])
 
 if __name__ == "__main__":
     main()
