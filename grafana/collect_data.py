@@ -32,24 +32,27 @@ def dumps_json(object, indent_value=None):
 def load_json(object):
     return json.loads(object.text)
 
-def search_dashboard(header):
-    logger.debug("load_json")
-    # Search query for dashboard UID
-    search_url = f"http://localhost:3000/api/search?query=Telegraf%test%XD"
-    get_dashboard = load_json(requests.get(search_url, headers=header))
-    # Retrieving dashboard uid value
-    dashboard_uid = str([item["uid"] for item in get_dashboard]).strip('[|]|\'')
-    return dashboard_uid
+def get_dashboard(header):
+    def search_dashboard():
+        logger.debug("load_json")
+        # Search query for dashboard UID
+        search_url = f"http://localhost:3000/api/search?query=Telegraf%test%XD"
+        get_dashb = load_json(requests.get(search_url, headers=header))
+        # Retrieving dashboard uid value
+        dashboard_uid = str([item["uid"] for item in get_dashb]).strip('[|]|\'')
+        return dashboard_uid
 
-def get_dashboard_metadata(dashboard_uid, header):
-    logger.debug("get_dashboard_metadata")
-    # Getting dashboard metadata by UID
-    metadata_url = f"http://localhost:3000/api/dashboards/uid/{dashboard_uid}"
-    get_metadata = load_json(requests.get(metadata_url, headers=header))
-    with open('file_to_parse.json', 'w+') as json_f:
-        file_dumps = dumps_json(get_metadata, 2)
-        json_f.write(file_dumps)
-    return dict(get_metadata), json_f.name
+    def get_dashboard_metadata():
+        logger.debug("get_dashboard_metadata")
+        # Getting dashboard metadata by UID
+        metadata_url = f"http://localhost:3000/api/dashboards/uid/{search_dashboard()}"
+        get_metadata = load_json(requests.get(metadata_url, headers=header))
+        with open('file_to_parse.json', 'w+') as json_f:
+            file_dumps = dumps_json(get_metadata, 2)
+            json_f.write(file_dumps)
+        return dict(get_metadata), json_f.name
+    
+    return get_dashboard_metadata(), search_dashboard()
 
 def parse_json(json_filename):
     logger.debug("parse_json")
@@ -102,12 +105,11 @@ def extract_data(json_filename, header):
 
     return extract_queries_list(), get_ds_values()
 
-
-
+# main function
 def main():
-    uid = search_dashboard(logon)
-    metadata = get_dashboard_metadata(uid, logon)[0]
-    file = get_dashboard_metadata(uid, logon)[1]
+    #print(get_dashboard(logon)[0][0])
+    uid = get_dashboard(logon)[1]
+    metadata, file = get_dashboard(logon)[0][0], get_dashboard(logon)[0][1]
     queries_list, ds_values = extract_data(file, logon)[0], extract_data(file, logon)[1]
     print(ds_values)
 
