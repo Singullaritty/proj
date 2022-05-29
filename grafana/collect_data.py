@@ -3,7 +3,6 @@ import json
 import datetime
 import sys
 import ijson
-import asyncio
 from datetime import timedelta
 from loguru import logger
 
@@ -68,6 +67,7 @@ def parse_json(json_filename):
         for prefix, event, value in parser:
            data.append(f'prefix={prefix}, event={event}, value={value}')
         nl_data = '\n'.join(data)
+        input_file.write(nl_data)
         return str(nl_data).strip('[|]').replace('\'','')
 
 # extracting data for snapshot template
@@ -75,44 +75,51 @@ def extract_json_data(json_filename, header):
     logger.debug("extract_json_data")
     # extract list of the queries from dashboard metadata
     def extract_all_data():
-        snap_data_list = []
-
         logger.debug("extract_all_data")
         with open(json_filename, 'rb') as input_file:
+            snap_data_list = []
+            queries = ijson.items(input_file, 'dashboard.panels.item.targets.item.query')
             color_mode = ijson.items(input_file, 'dashboard.panels.item.fieldConfig.defaults.color.mode')
             thresholds_mode = ijson.items(input_file, 'dashboard.panels.item.fieldConfig.defaults.thresholds.mode')
-            thresholds_data = ijson.items(input_file, 'dashboard.panels.item.fieldConfig.defaults.thresholds', multiple_values=True)
-            
-            for itemc in color_mode:
-                print(f"Color modes: \n{itemc}\n")
-            input_file.seek(0, 0)
+            thresholds_data = ijson.items(input_file, 'dashboard.panels.item.fieldConfig.defaults.thresholds')
 
-            for thm in thresholds_mode:
-                print(f"Thresholds modes: \n{thm} \n")
-            input_file.seek(0, 0)
 
-            for thd in thresholds_data:
-                print(f"Thresholds data: \n{thd} \n")
-            input_file.seek(0, 0)
-
+            # Update queries with needed syntax for API call
             # for query in queries:
-            #     snap_data_list.append(f'{query}')
-            #     snap_data_list = [w.replace('$timeFilter', 'time >= now() - 1h and time <= now()') for w in snap_data_list]
-            #     snap_data_list = [w.replace('$interval', '30s') for w in snap_data_list]
-            #     snap_data_list = [w.replace('$server', 'learn-python') for w in snap_data_list]
-            #     snap_data_list = [w.replace(',', '%2C') for w in snap_data_list]
-            #     snap_data_list = [w.replace(' ', '%20') for w in snap_data_list]
-            #     snap_data_list = [w.replace('"', '%22') for w in snap_data_list]
-            #     snap_data_list = [s + '&epoch=ms' for s in snap_data_list]
+            #     print(f"Query: \n {query} \n")
+
+            for c_mode in color_mode:
+                print(f"Color mode: \n {c_mode}")
+            input_file.seek(0,0)
+
+            for thrm in thresholds_mode:
+                print(f"Threshold mode: \n {thrm}\n")
+            input_file.seek(0,0)
+
+            for thrd in thresholds_data:
+                print(f"Thresholds data: \n {thrd}\n")
+            input_file.seek(0,0)
+
+
+            # snap_data_list = [w.replace('$timeFilter', 'time >= now() - 1h and time <= now()') for w in snap_data_list]
+            # snap_data_list = [w.replace('$interval', '30s') for w in snap_data_list]
+            # snap_data_list = [w.replace('$server', 'learn-python') for w in snap_data_list]
+            # snap_data_list = [w.replace(',', '%2C') for w in snap_data_list]
+            # snap_data_list = [w.replace(' ', '%20') for w in snap_data_list]
+            # snap_data_list = [w.replace('"', '%22') for w in snap_data_list]
+            # snap_data_list = [s + '&epoch=ms' for s in snap_data_list]
 
             # for c_mode in color_mode:
             #     snap_data_list.append(f"{c_mode}")
+            # input_file.seek(0, 0)
 
             # for thrm in thresholds_mode:
             #     snap_data_list.append(f"{thrm}")
+            # input_file.seek(0, 0)
 
             # for thrd in thresholds_data:
             #     snap_data_list.append(f"{thrd}")
+            # input_file.seek(0, 0)
 
         return snap_data_list
 
