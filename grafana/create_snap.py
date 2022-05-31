@@ -57,16 +57,19 @@ def create_snap():
     get_result.update(snap_name)
     payload = json.dumps(get_result, indent=3, sort_keys=True)
 
-    # with open('pay_test.json', 'r') as json_file:
+    # with open('sample.json', 'r') as json_file:
     #     file_read = json_file.read()
     #     data_loads = json.loads(file_read)
-    #     print(json.dumps(data_loads, indent=3, sort_keys=True))
+    #     data_dumps = (json.dumps(data_loads, sort_keys=True))
+    #     #print(json.dumps(data_loads, indent=3, sort_keys=True))
 
     # Creating snapshot
-    snapshot_url = "http://localhost:3000/api/snapshots"
-    post_data = requests.post(snapshot_url, headers=headers, data=payload)
-    post_parsed = json.loads(post_data.text)
-    post_snap_url = post_parsed["url"]
-    logger.info(f"Snapshot for dashboard: \"{dashboard_name}\" has been created. It can be accessed via URL: {post_snap_url}", format=frmt, colorize=True)
+    # snapshot_url = "http://localhost:3000/api/snapshots"
+    # post_data = requests.post(snapshot_url, headers=headers, data=payloads)
+    # post_data = requests.post(snapshot_url, headers=headers, data=data_dumps)
+    #post_parsed = json.loads(post_data.text)
+    # print(post_data)
+    # post_snap_url = post_parsed["url"]
+    # logger.info(f"Snapshot for dashboard: \"{dashboard_name}\" has been created. It can be accessed via URL: {post_snap_url}", format=frmt, colorize=True)
 
 create_snap()

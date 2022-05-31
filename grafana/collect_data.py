@@ -1,6 +1,7 @@
 import requests
 import json
 import datetime
+import ast
 import sys
 import ijson
 from datetime import timedelta
@@ -67,7 +68,7 @@ def parse_json(json_filename):
         for prefix, event, value in parser:
            data.append(f'prefix={prefix}, event={event}, value={value}')
         nl_data = '\n'.join(data)
-        input_file.write(nl_data)
+        #input_file.write(nl_data)
         return str(nl_data).strip('[|]').replace('\'','')
 
 # extracting data for snapshot template
@@ -78,27 +79,47 @@ def extract_json_data(json_filename, header):
         logger.debug("extract_all_data")
         with open(json_filename, 'rb') as input_file:
             snap_data_list = []
+            panels = ijson.items(input_file, 'dashboard.panels.item')
             queries = ijson.items(input_file, 'dashboard.panels.item.targets.item.query')
             color_mode = ijson.items(input_file, 'dashboard.panels.item.fieldConfig.defaults.color.mode')
             thresholds_mode = ijson.items(input_file, 'dashboard.panels.item.fieldConfig.defaults.thresholds.mode')
             thresholds_data = ijson.items(input_file, 'dashboard.panels.item.fieldConfig.defaults.thresholds')
+            
+            # count = 1
+            # for i in panels:
+            #     print(f"Panel number {count}:\n {i}\n")
+            #     count += 1
 
+            for panel in panels:
+                snap_data_list.append(panel)
+            input_file.seek(0,0)
 
+        # count = 1
+        # for p in snap_data_list:
+        #     print(f"Panel {count}: \n {p}\n")
+        #     count += 1
+
+        for dict in snap_data_list:
+            for k, v in dict.items():
+                print(k, v)
+                    
             # Update queries with needed syntax for API call
             # for query in queries:
+            #     snap_data_list.append(f"{query}")
             #     print(f"Query: \n {query} \n")
 
-            for c_mode in color_mode:
-                print(f"Color mode: \n {c_mode}")
-            input_file.seek(0,0)
+            # print(len(snap_data_list))
+            # for c_mode in color_mode:
+            #     print(f"Color mode: \n {c_mode}")
+            # input_file.seek(0,0)
 
-            for thrm in thresholds_mode:
-                print(f"Threshold mode: \n {thrm}\n")
-            input_file.seek(0,0)
+            # for thrm in thresholds_mode:
+            #     print(f"Threshold mode: \n {thrm}\n")
+            # input_file.seek(0,0)
 
-            for thrd in thresholds_data:
-                print(f"Thresholds data: \n {thrd}\n")
-            input_file.seek(0,0)
+            # for thrd in thresholds_data:
+            #     print(f"Thresholds data: \n {thrd}\n")
+            # input_file.seek(0,0)
 
 
             # snap_data_list = [w.replace('$timeFilter', 'time >= now() - 1h and time <= now()') for w in snap_data_list]
